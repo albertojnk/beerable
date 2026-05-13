@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
 import api from '../../src/services/api';
@@ -11,23 +12,23 @@ export default function PixPayment() {
     total: string;
   }>();
   const router = useRouter();
+  const [copied, setCopied] = useState(false);
   const [status, setStatus] = useState('pending_payment');
   const [elapsed, setElapsed] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   useEffect(() => {
+    setStatus('pending_payment');
+    setElapsed(0);
+
     intervalRef.current = setInterval(async () => {
       try {
         const { data } = await api.get(`/orders/${order_id}`);
         if (data.status === 'paid') {
-          setStatus('paid');
           clearInterval(intervalRef.current);
           clearInterval(timerRef.current);
-          router.replace({
-            pathname: '/(app)/qrcode',
-            params: { order_id },
-          });
+          setStatus('paid');
         }
       } catch {
         // keep polling
@@ -51,6 +52,18 @@ export default function PixPayment() {
       clearInterval(timerRef.current);
     };
   }, [order_id]);
+
+  useEffect(() => {
+    if (status === 'paid') {
+      const timeout = setTimeout(() => {
+        router.replace({
+          pathname: '/(app)/qrcode',
+          params: { order_id },
+        });
+      }, 1500);
+      return () => clearTimeout(timeout);
+    }
+  }, [status, order_id, router]);
 
   const remaining = Math.max(600 - elapsed, 0);
   const minutes = Math.floor(remaining / 60);
@@ -78,8 +91,23 @@ export default function PixPayment() {
         )}
       </View>
 
+      {pix_qr_code && (
+        <TouchableOpacity
+          style={styles.copyButton}
+          onPress={async () => {
+            await Clipboard.setStringAsync(pix_qr_code);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }}
+        >
+          <Text style={styles.copyButtonText}>
+            {copied ? 'Copiado!' : 'PIX Copia e Cola'}
+          </Text>
+        </TouchableOpacity>
+      )}
+
       <Text style={styles.instruction}>
-        Abra seu aplicativo do banco e escaneie o QR Code acima para pagar
+        Escaneie o QR Code ou copie o código para pagar no app do seu banco
       </Text>
 
       <Text style={styles.timer}>
@@ -118,6 +146,22 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#e5e7eb',
     marginBottom: 24,
+  },
+  copyButton: {
+    backgroundColor: '#f3f4f6',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+    width: '100%',
+    alignItems: 'center',
+  },
+  copyButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#d97706',
   },
   instruction: {
     fontSize: 14,

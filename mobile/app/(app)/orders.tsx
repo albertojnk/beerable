@@ -14,6 +14,7 @@ interface Order {
   total: number;
   created_at: string;
   items: OrderItem[];
+  pix_qr_code?: string;
 }
 
 const statusConfig: Record<string, { label: string; bg: string; text: string }> = {
@@ -50,9 +51,18 @@ export default function Orders() {
                     pathname: '/(app)/qrcode',
                     params: { order_id: item.id },
                   });
+                } else if (item.status === 'pending_payment') {
+                  router.push({
+                    pathname: '/(app)/pix-payment',
+                    params: {
+                      order_id: item.id,
+                      pix_qr_code: item.pix_qr_code || '',
+                      total: item.total.toString(),
+                    },
+                  });
                 }
               }}
-              disabled={item.status !== 'paid'}
+              disabled={item.status === 'collected' || item.status === 'cancelled'}
             >
               <View style={styles.cardHeader}>
                 <Text style={styles.orderId}>#{item.id.slice(-8)}</Text>
@@ -73,6 +83,9 @@ export default function Orders() {
               </View>
               {item.status === 'paid' && (
                 <Text style={styles.tapHint}>Toque para ver QR Code</Text>
+              )}
+              {item.status === 'pending_payment' && (
+                <Text style={styles.tapHint}>Toque para pagar</Text>
               )}
             </TouchableOpacity>
           );
