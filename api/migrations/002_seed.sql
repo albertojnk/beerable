@@ -23,5 +23,4 @@ INSERT INTO products (establishment_id, category_id, name, description, price, i
     ('00000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000002', 'Porção de Batata Frita', 'Batata frita crocante', 25.00, true),
     ('00000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000002', 'Tábua de Frios', 'Queijos e embutidos variados', 45.00, true),
     ('00000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000003', 'Caipirinha de Limão', 'Cachaça, limão e açúcar', 16.00, true),
-    ('00000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000003', 'Gin Tônica', 'Gin, tônica e limão', 22.00, true)
-ON CONFLICT DO NOTHING;
+    ('00000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000003', 'Gin Tônica', 'Gin, tônica e limão', 22.00, true);
