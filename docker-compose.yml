@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: marketplace_mvp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./api
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      DB_URL: postgres://postgres:postgres@db:5432/marketplace_mvp?sslmode=disable
+      JWT_SECRET: troque_por_algo_secreto_aqui
+      PAGARME_API_KEY: sua_chave_sandbox_aqui
+      PAGARME_WEBHOOK_SECRET: seu_webhook_secret_aqui
+      QR_EXPIRY_HOURS: "24"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build: ./web
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  pgdata:

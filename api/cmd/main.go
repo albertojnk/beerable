@@ -147,15 +147,18 @@ func main() {
 }
 
 func runMigrations(db *sqlx.DB) {
-	migration, err := os.ReadFile("migrations/001_mvp.sql")
-	if err != nil {
-		log.Printf("Warning: could not read migration file: %v", err)
-		return
-	}
-	_, err = db.Exec(string(migration))
-	if err != nil {
-		log.Printf("Warning: migration error (may already be applied): %v", err)
-	} else {
-		log.Println("Migrations applied successfully")
+	files := []string{"migrations/001_mvp.sql", "migrations/002_seed.sql"}
+	for _, f := range files {
+		migration, err := os.ReadFile(f)
+		if err != nil {
+			log.Printf("Warning: could not read %s: %v", f, err)
+			continue
+		}
+		_, err = db.Exec(string(migration))
+		if err != nil {
+			log.Printf("Warning: %s error (may already be applied): %v", f, err)
+		} else {
+			log.Printf("Applied %s", f)
+		}
 	}
 }
