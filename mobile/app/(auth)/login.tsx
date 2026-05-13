@@ -29,8 +29,13 @@ export default function Login() {
     try {
       const { data } = await api.post('/auth/customer/login', { email, password });
       await signIn(data.token);
-    } catch {
-      Alert.alert('Erro', 'Email ou senha inválidos');
+    } catch (e: unknown) {
+      const axiosErr = e as { response?: { status?: number } };
+      if (axiosErr.response?.status === 401) {
+        Alert.alert('Erro', 'Email ou senha inválidos');
+      } else {
+        Alert.alert('Erro', 'Falha ao conectar com o servidor. Verifique a URL da API.');
+      }
     } finally {
       setLoading(false);
     }

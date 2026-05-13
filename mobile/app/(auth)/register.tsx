@@ -37,8 +37,13 @@ export default function Register() {
         password,
       });
       await signIn(data.token);
-    } catch {
-      Alert.alert('Erro', 'Falha ao cadastrar. Email já existe?');
+    } catch (e: unknown) {
+      const axiosErr = e as { response?: { status?: number } };
+      if (axiosErr.response?.status === 409) {
+        Alert.alert('Erro', 'Email já cadastrado');
+      } else {
+        Alert.alert('Erro', 'Falha ao conectar com o servidor. Verifique a URL da API.');
+      }
     } finally {
       setLoading(false);
     }
